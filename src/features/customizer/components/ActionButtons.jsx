@@ -34,14 +34,6 @@ export default function ActionButtons({
           >
             Lưu
           </button>
-          <button
-            className="customizer-layout-bottom-button add-button"
-            title="Thêm vào giỏ hàng"
-            onClick={onAddToCart}
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? 'Đang thêm...' : isSuccess ? 'Đã thêm!' : 'Thêm vào giỏ'}
-          </button>
         </div>
       </div>
     </div>

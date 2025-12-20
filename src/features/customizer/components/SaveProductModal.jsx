@@ -40,12 +40,8 @@ export default function SaveProductModal({
 
       setIsSaving(true);
 
-      const userId = getUserIdFromToken();
-      if (!userId) {
-        toast.error('You must be logged in to save products');
-        setIsSaving(false);
-        return;
-      }
+      // Get userId from token, or use default for localStorage mode
+      const userId = getUserIdFromToken() || 1; // Default to 1 for localStorage mode
 
       const totalPrice = calculateTotalPrice();
 

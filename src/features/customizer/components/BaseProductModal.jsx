@@ -28,7 +28,7 @@ export default function BaseProductModal({
     <div className="customizer-layout-popup-overlay" onClick={onClose}>
       <div className="customizer-layout-popup-menu" onClick={(e) => e.stopPropagation()}>
         <div className="customizer-layout-popup-header">
-          <h6>Chọn mẫu kẹp</h6>
+          <h6>Chọn mẫu đất</h6>
           <button 
             className="customizer-layout-popup-close"
             onClick={onClose}
@@ -42,7 +42,7 @@ export default function BaseProductModal({
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Tìm kiếm dáng kẹp..."
+            placeholder="Tìm kiếm mẫu đất..."
             className="customizer-layout-search-input"
           />
         </div>
@@ -50,7 +50,7 @@ export default function BaseProductModal({
         <div className="customizer-layout-popup-content">
           {isLoading ? (
             <div className="customizer-layout-popup-empty">
-              <p>Đang tải danh sách mẫu kẹp...</p>
+              <p>Đang tải danh sách mẫu đất...</p>
             </div>
           ) : filteredBases && filteredBases.length > 0 ? (
             filteredBases.map((base) => {
@@ -83,7 +83,7 @@ export default function BaseProductModal({
             })
           ) : (
             <div className="customizer-layout-popup-empty">
-              <p>Không có mẫu kẹp nào.</p>
+              <p>Không có mẫu đất nào.</p>
             </div>
           )}
         </div>

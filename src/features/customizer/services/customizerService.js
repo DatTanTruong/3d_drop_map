@@ -1,12 +1,16 @@
-import { apiRequest } from '../../../services/apiClient';
+import { bases, charms } from '../mock/mockData';
+import { customProducts } from '../mock/customProductsData';
 
 /**
  * Fetch all available bases from the database
- * GET /Base/GetAll
+ * MOCK: Returns mock data instead of API call
  */
 export const fetchBases = async () => {
   try {
-    return await apiRequest('Base/GetAll');
+    // Simulate network delay
+    await new Promise(resolve => setTimeout(resolve, 300));
+    console.log('Fetching bases from mock data:', bases);
+    return bases;
   } catch (error) {
     console.error('Error fetching bases:', error);
     throw error;
@@ -15,11 +19,14 @@ export const fetchBases = async () => {
 
 /**
  * Fetch all available charms from the database
- * GET /Charm/GetAll
+ * MOCK: Returns mock data instead of API call
  */
 export const fetchCharms = async () => {
   try {
-    return await apiRequest('Charm/GetAll');
+    // Simulate network delay
+    await new Promise(resolve => setTimeout(resolve, 300));
+    console.log('Fetching charms from mock data:', charms);
+    return charms;
   } catch (error) {
     console.error('Error fetching charms:', error);
     throw error;
@@ -28,12 +35,30 @@ export const fetchCharms = async () => {
 
 /**
  * Fetch user's custom products
- * GET /Product/GetByUserId
- * Only loads products created by the currently logged-in user
+ * MOCK: Returns products from localStorage
  */
 export const fetchUserProducts = async () => {
   try {
-    return await apiRequest('Product/GetByUserId');
+    // Simulate network delay
+    await new Promise(resolve => setTimeout(resolve, 300));
+
+    // Import localStorage service dynamically
+    const localStorageService = await import('./localStorageService');
+    const products = localStorageService.getProducts();
+
+    console.log('Fetching custom products from localStorage:', products);
+
+    // Enhance custom products with base references for compatibility
+    const enhancedProducts = products.map(product => ({
+      ...product,
+      base: bases.find(base => base.id === product.baseId),
+      model: {
+        id: product.modelId || product.id,
+        address: product.configurationFile || null
+      }
+    }));
+
+    return enhancedProducts;
   } catch (error) {
     console.error('Error fetching user products:', error);
     throw error;
@@ -42,36 +67,39 @@ export const fetchUserProducts = async () => {
 
 /**
  * Create a new custom product
- * POST /Product/Create
+ * MOCK: Saves to localStorage with persistent storage
  */
 export const createCustomProduct = async (productData, images, modelFile) => {
   try {
-    const formData = new FormData();
-    
-    formData.append('collectId', productData.collectId || '');
-    formData.append('title', productData.title || '');
-    formData.append('descript', productData.descript || '');
-    formData.append('baseId', productData.baseId || '');
-    formData.append('price', productData.price || 0);
-    formData.append('userId', productData.userId || '');
-    formData.append('stock', productData.stock || 1);
-    formData.append('createDate', new Date().toISOString());
-    formData.append('status', productData.status || 'active');
-    
-    if (images && images.length > 0) {
-      images.forEach((image) => {
-        formData.append('Images', image);
-      });
-    }
-    
+    // Simulate network delay
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    console.log('Mock: Creating product with data:', productData);
+    console.log('Mock: Images:', images);
+    console.log('Mock: Model file:', modelFile);
+
+    // Import localStorage service
+    const localStorageService = await import('./localStorageService');
+
+    // Extract image blob
+    const imageBlob = images && images.length > 0 ? images[0] : null;
+
+    // Extract configuration data from model file
+    let configData = null;
     if (modelFile) {
-      formData.append('ModelFile', modelFile);
+      try {
+        const text = await modelFile.text();
+        configData = JSON.parse(text);
+      } catch (error) {
+        console.warn('Could not parse model file:', error);
+      }
     }
 
-    return await apiRequest('Product/Create', {
-      method: 'POST',
-      body: formData
-    });
+    // Save to localStorage
+    const newProduct = await localStorageService.saveProduct(productData, imageBlob, configData);
+
+    console.log('Mock: Product created and saved to localStorage:', newProduct);
+    return newProduct;
   } catch (error) {
     console.error('Error creating product:', error);
     throw error;
@@ -80,44 +108,49 @@ export const createCustomProduct = async (productData, images, modelFile) => {
 
 /**
  * Update an existing custom product (including model file)
- * PUT /Product/UpdateWithFile
+ * MOCK: Updates product in localStorage
  */
 export const updateCustomProduct = async (productData, images, modelFile) => {
   try {
-    const formData = new FormData();
+    // Simulate network delay
+    await new Promise(resolve => setTimeout(resolve, 500));
 
-    formData.append('id', productData.id || '');
-    formData.append('collectId', productData.collectId || '');
-    formData.append('title', productData.title || '');
-    formData.append('descript', productData.descript || '');
-    formData.append('baseId', productData.baseId || '');
-    formData.append('price', productData.price || 0);
-    formData.append('userId', productData.userId || '');
-    formData.append('stock', productData.stock || 1);
-    formData.append('modelId', productData.modelId || '');
-    formData.append('createDate', productData.createDate || new Date().toISOString());
-    formData.append('status', productData.status || 'active');
-    
-    if (images && images.length > 0) {
-      images.forEach((image) => {
-        formData.append('Images', image);
-      });
-    }
-    
+    console.log('Mock: Updating product with data:', productData);
+    console.log('Mock: Images:', images);
+    console.log('Mock: Model file:', modelFile);
+
+    // Import localStorage service
+    const localStorageService = await import('./localStorageService');
+
+    // Extract image blob
+    const imageBlob = images && images.length > 0 ? images[0] : null;
+
+    // Extract configuration data from model file
+    let configData = null;
     if (modelFile) {
-      formData.append('ModelFile', modelFile);
+      try {
+        const text = await modelFile.text();
+        configData = JSON.parse(text);
+      } catch (error) {
+        console.warn('Could not parse model file:', error);
+      }
     }
 
-    return await apiRequest('Product/UpdateWithFile', {
-      method: 'PUT',
-      body: formData
-    });
+    // Update in localStorage
+    const updatedProduct = await localStorageService.updateProduct(
+      productData.id,
+      productData,
+      imageBlob,
+      configData
+    );
+
+    console.log('Mock: Product updated in localStorage:', updatedProduct);
+    return updatedProduct;
   } catch (error) {
     console.error('Error updating product:', error);
     throw error;
   }
 };
-
 /**
  * Calculate total price for a custom product
  */
@@ -126,7 +159,7 @@ export const calculateCustomProductPrice = (base, selectedCharms) => {
   const charmsPrices = selectedCharms.reduce((total, charm) => {
     return total + (parseFloat(charm.price) || 0);
   }, 0);
-  
+
   return basePrice + charmsPrices;
 };
 

@@ -2,6 +2,7 @@
 import React, { useMemo } from "react";
 import MoveIcon from "../../../assest/move-icon.png";
 import RotateIcon from "../../../assest/rotate-icon.png";
+import ScaleIcon from "../../../assest/scale-icon.png";
 
 export default function TransformControls({ 
   transformMode, 
@@ -24,6 +25,7 @@ export default function TransformControls({
   const transformModes = [
     { mode: "translate", label: MoveIcon, title: "Move (Translate)" },
     { mode: "rotate", label: RotateIcon, title: "Rotate" },
+    { mode: "scale", label: ScaleIcon, title: "Scale" },
   ];
 
   return (

@@ -4,9 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { fetchBases, fetchCharms, fetchUserProducts } from "../services/customizerService";
 import ModelViewer from "../components/ModelViewer";
-import Header from "../../../component/Header";
 import BaseProductSelector from "../components/BaseProductSelector";
-import CustomProductSelector from "../components/CustomProductSelector";
 import CharmSelector from "../components/CharmSelector";
 import TransformControls from "../components/TransformControls";
 import ActionButtons from "../components/ActionButtons";
@@ -15,6 +13,7 @@ import CharmModal from "../components/CharmModal";
 import CustomProductModal from "../components/CustomProductModal";
 import SaveProductModal from "../components/SaveProductModal";
 import "../css/CustomizerLayout.css";
+import CustomProductSelector from "../components/CustomProductSelector";
 
 const API_URL = process.env.REACT_APP_HOST_API;
 
@@ -235,38 +234,22 @@ export default function CustomizerPage() {
     try {
       console.log('Loading custom product:', customProduct);
       
-      // Get the model file URL from the API response
-      const modelFileUrl = customProduct.model?.address;
-      if (!modelFileUrl) {
-        throw new Error('No model file URL available for this product');
+      // Get configuration data directly from the product (stored in localStorage)
+      const configData = customProduct.configurationData;
+      if (!configData) {
+        throw new Error('No configuration data available for this product');
       }
       
-      console.log('Fetching model file from:', modelFileUrl);
+      console.log('Configuration loaded from localStorage:', configData);
       
-      // Load configuration from the JSON file
-      const response = await fetch(modelFileUrl);
-      if (!response.ok) {
-        throw new Error(`Failed to load configuration file: ${response.status} ${response.statusText}`);
-      }
-      
-      const configData = await response.json();
-      console.log('Configuration loaded:', configData);
-      
-      // Find the base product by ID from the API response
-      const baseFromProduct = customProduct.base;
+      // Find the base product by ID from the configuration
+      const baseFromProduct = customProduct.base || bases.find(base => base.id === customProduct.baseId);
       if (!baseFromProduct) {
         throw new Error('Base product information not found');
       }
       
-      // If base ID exists in bases array, use it; otherwise create a temporary reference
-      let foundBase = bases.find(base => base.id === baseFromProduct.id);
-      if (!foundBase) {
-        // Use the base from the API response
-        foundBase = baseFromProduct;
-      }
-      
       // Set the base product
-      setSelectedBase(foundBase);
+      setSelectedBase(baseFromProduct);
       
       // Set the base color from config or default
       if (configData.baseModelColor) {
@@ -472,7 +455,7 @@ export default function CustomizerPage() {
     setPendingAddToCart(false);
   };
 
-  const handleAfterSaveComplete = (savedProduct) => {
+  const handleAfterSaveComplete = async (savedProduct) => {
     setShowSaveProductModal(false);
     setProductTitle('');
     setProductDescription('');
@@ -480,6 +463,15 @@ export default function CustomizerPage() {
       setEditingProduct(savedProduct);
     }
     setIsDirty(false);
+
+    // Reload products list from localStorage
+    try {
+      const data = await fetchUserProducts();
+      setCustomProducts(data || []);
+      console.log('Products reloaded after save:', data);
+    } catch (error) {
+      console.error('Error reloading products:', error);
+    }
 
     if (pendingAddToCart) {
       const productId = savedProduct?.id || savedProduct?.productId || editingProduct?.id;
@@ -498,8 +490,7 @@ export default function CustomizerPage() {
   };
   return (
     <div>
-    <Header />
-    <div className="customizer-layout-container">
+    <div>
 
       {/* Main content container */}
       <div className="customizer-layout-main">
@@ -585,12 +576,12 @@ export default function CustomizerPage() {
 
         {/* New row with Save and Camera Lock buttons */}
         <ActionButtons 
-  isCameraLocked={isCameraLocked}
-  onToggleCameraLock={() => setIsCameraLocked(!isCameraLocked)}
-  onSaveAll={handleSaveAll}
-  onAddToCart={handleAddToCart}
-  addToCartState={addToCartState}
-/>
+          isCameraLocked={isCameraLocked}
+          onToggleCameraLock={() => setIsCameraLocked(!isCameraLocked)}
+          onSaveAll={handleSaveAll}
+          onAddToCart={handleAddToCart}
+          addToCartState={addToCartState}
+        />
       </div>
     </div>
     
